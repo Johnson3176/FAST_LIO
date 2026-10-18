@@ -1,4 +1,5 @@
 common:
+    lid_local_frames_topic: "/livox/local_frames"
     lid_topic:  "/livox/lidar"
     imu_topic:  "/livox/imu"
     time_sync_en: false         # ONLY turn on when external time synchronization is really not possible
@@ -24,6 +25,9 @@ mapping:
                    0, 0, 1]
 
 publish:
+    localframes_en: true          # 独立控制局部多帧输出
+    localframes_max_frames: 15     # 缓存帧数上限
+    localframes_min_distance: 0.03 # 选帧最小位移，m；0 表示每帧保留
     path_en:  false
     scan_publish_en:  true       # false: close all the point cloud output
     dense_publish_en: true       # false: low down the points number in a global-frame point clouds scan.

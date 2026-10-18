@@ -298,3 +298,37 @@ The same defaults apply when an integration launch supplies a different YAML.
 Set `self_filter/enabled` to false to disable exclusion. These dimensions come
 from the reference robot; calibrate them for your LiDAR installation.
 Invalid/non-finite or reversed bounds stop startup with an error.
+
+## MOMA local multi-frame cloud
+
+The local cloud publisher keeps recent selected scans in the `odom` frame. It is
+independent of `publish/scan_publish_en` and never feeds its output back to the EKF.
+
+```yaml
+common:
+  lid_local_frames_topic: /livox/local_frames
+publish:
+  localframes_en: true
+  localframes_max_frames: 15
+  localframes_min_distance: 0.03
+```
+
+These are also the defaults if an integration YAML does not specify the keys.
+Each selected scan is transformed with its own estimated pose and retained as
+an immutable cloud. The first valid scan is admitted even at the origin. Later
+scans are selected when translation since the last selected scan is at least
+`localframes_min_distance` meters. A value of zero admits every new scan.
+Pure rotation alone does not select a scan when the distance threshold is positive.
+The oldest selected scan is removed when the frame limit is exceeded.
+
+`publish/dense_publish_en` selects undistorted full scans (true) or downsampled
+scans (false). Memory scales with the number of cached points; reduce the frame
+limit or disable dense output for large scans. A latched queue of one publishes
+only when the cache changes. Its timestamp is that of the newest selected scan,
+not wall time. Point fields are preserved, but per-point relative times span
+multiple scans and must not be treated as a new raw LiDAR scan.
+
+The cache is cleared on LiDAR/IMU timestamp rewind. All cache access stays in the
+existing `spinOnce` mapping thread; switching to AsyncSpinner requires locking.
+This clears the local cloud history, not the FAST-LIO estimator or map.
+Invalid frame counts/distances stop startup. Disable with `publish/localframes_en: false`.
