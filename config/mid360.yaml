@@ -33,3 +33,13 @@ pcd_save:
     pcd_save_en: true
     interval: -1                 # how many LiDAR frames saved in each pcd file; 
                                  # -1 : all frames will be saved in ONE pcd file, may lead to memory crash when having too much frames.
+
+# 机身区域排除：雷达坐标系，单位 m，边界点也排除。
+self_filter:
+    enabled: true
+    min_x: -1.0
+    max_x: 0.1
+    min_y: -0.5
+    max_y: 0.5
+    min_z: -0.5
+    max_z: 2.0

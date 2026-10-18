@@ -779,6 +779,18 @@ int main(int argc, char** argv)
     nh.param<double>("mapping/acc_cov",acc_cov,0.1);
     nh.param<double>("mapping/b_gyr_cov",b_gyr_cov,0.0001);
     nh.param<double>("mapping/b_acc_cov",b_acc_cov,0.0001);
+    nh.param<bool>("self_filter/enabled", p_pre->self_filter.enabled, true);
+    nh.param<double>("self_filter/min_x", p_pre->self_filter.min_x, -1.0);
+    nh.param<double>("self_filter/max_x", p_pre->self_filter.max_x, 0.1);
+    nh.param<double>("self_filter/min_y", p_pre->self_filter.min_y, -0.5);
+    nh.param<double>("self_filter/max_y", p_pre->self_filter.max_y, 0.5);
+    nh.param<double>("self_filter/min_z", p_pre->self_filter.min_z, -0.5);
+    nh.param<double>("self_filter/max_z", p_pre->self_filter.max_z, 2.0);
+    if (!p_pre->self_filter.valid())
+    {
+        ROS_FATAL("Invalid self_filter bounds: finite min < max is required on each axis");
+        return 1;
+    }
     nh.param<double>("preprocess/blind", p_pre->blind, 0.01);
     nh.param<int>("preprocess/lidar_type", lidar_type, AVIA);
     nh.param<int>("preprocess/scan_line", p_pre->N_SCANS, 16);

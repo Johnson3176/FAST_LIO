@@ -113,6 +113,7 @@ void Preprocess::avia_handler(const livox_ros_driver2::CustomMsg::ConstPtr &msg)
   {
     for(uint i=1; i<plsize; i++)
     {
+      if (self_filter.excludes(msg->points[i].x, msg->points[i].y, msg->points[i].z)) continue;
       if((msg->points[i].line < N_SCANS) && ((msg->points[i].tag & 0x30) == 0x10 || (msg->points[i].tag & 0x30) == 0x00))
       {
         pl_full[i].x = msg->points[i].x;
@@ -162,6 +163,7 @@ void Preprocess::avia_handler(const livox_ros_driver2::CustomMsg::ConstPtr &msg)
   {
     for(uint i=1; i<plsize; i++)
     {
+      if (self_filter.excludes(msg->points[i].x, msg->points[i].y, msg->points[i].z)) continue;
       if((msg->points[i].line < N_SCANS) && ((msg->points[i].tag & 0x30) == 0x10 || (msg->points[i].tag & 0x30) == 0x00))
       {
         valid_num ++;
@@ -206,6 +208,7 @@ void Preprocess::oust64_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
 
     for (uint i = 0; i < plsize; i++)
     {
+      if (self_filter.excludes(pl_orig.points[i].x, pl_orig.points[i].y, pl_orig.points[i].z)) continue;
       double range = pl_orig.points[i].x * pl_orig.points[i].x + pl_orig.points[i].y * pl_orig.points[i].y + pl_orig.points[i].z * pl_orig.points[i].z;
       if (range < (blind * blind)) continue;
       Eigen::Vector3d pt_vec;
@@ -234,6 +237,7 @@ void Preprocess::oust64_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
     {
       PointCloudXYZI &pl = pl_buff[j];
       int linesize = pl.size();
+      if (linesize < 2) continue;
       vector<orgtype> &types = typess[j];
       types.clear();
       types.resize(linesize);
@@ -259,6 +263,7 @@ void Preprocess::oust64_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
     {
       if (i % point_filter_num != 0) continue;
 
+      if (self_filter.excludes(pl_orig.points[i].x, pl_orig.points[i].y, pl_orig.points[i].z)) continue;
       double range = pl_orig.points[i].x * pl_orig.points[i].x + pl_orig.points[i].y * pl_orig.points[i].y + pl_orig.points[i].z * pl_orig.points[i].z;
       
       if (range < (blind * blind)) continue;
@@ -372,6 +377,7 @@ void Preprocess::velodyne_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
           time_last[layer]=added_pt.curvature;
         }
 
+        if (self_filter.excludes(added_pt.x, added_pt.y, added_pt.z)) continue;
         pl_buff[layer].points.push_back(added_pt);
       }
 
@@ -448,7 +454,8 @@ void Preprocess::velodyne_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
         {
           if(added_pt.x*added_pt.x+added_pt.y*added_pt.y+added_pt.z*added_pt.z > (blind * blind))
           {
-            pl_surf.points.push_back(added_pt);
+            if (!self_filter.excludes(added_pt.x, added_pt.y, added_pt.z))
+              pl_surf.points.push_back(added_pt);
           }
         }
       }
@@ -463,6 +470,7 @@ void Preprocess::sim_handler(const sensor_msgs::PointCloud2::ConstPtr &msg) {
     int plsize = pl_orig.size();
     pl_surf.reserve(plsize);
     for (int i = 0; i < pl_orig.points.size(); i++) {
+        if (self_filter.excludes(pl_orig.points[i].x, pl_orig.points[i].y, pl_orig.points[i].z)) continue;
         double range = pl_orig.points[i].x * pl_orig.points[i].x + pl_orig.points[i].y * pl_orig.points[i].y +
                        pl_orig.points[i].z * pl_orig.points[i].z;
         if (range < blind * blind) continue;

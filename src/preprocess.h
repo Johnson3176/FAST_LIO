@@ -3,6 +3,7 @@
 
 
 #include <ros/ros.h>
+#include "self_filter.hpp"
 #include <pcl_conversions/pcl_conversions.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <livox_ros_driver2/CustomMsg.h>
@@ -101,6 +102,7 @@ class Preprocess
   vector<orgtype> typess[128]; //maximum 128 line lidar
   float time_unit_scale;
   int lidar_type, point_filter_num, N_SCANS, SCAN_RATE, time_unit;
+  SelfFilterBox self_filter;
   double blind;
   bool feature_enabled, given_offset_time;
   ros::Publisher pub_full, pub_surf, pub_corn;

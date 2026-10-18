@@ -273,3 +273,28 @@ The main structure of this UAV is 3d printed (Aluminum or PLA), the .stl file wi
 ## 6.Acknowledgments
 
 Thanks for LOAM(J. Zhang and S. Singh. LOAM: Lidar Odometry and Mapping in Real-time), [Livox_Mapping](https://github.com/Livox-SDK/livox_mapping), [LINS](https://github.com/ChaoqinRobotics/LINS---LiDAR-inertial-SLAM) and [Loam_Livox](https://github.com/hku-mars/loam_livox).
+
+## MOMA self-point exclusion
+
+`self_filter` removes points inside an axis-aligned box in the raw LiDAR frame
+before feature extraction and IMU undistortion. Bounds include the faces of the box.
+Point time/intensity fields and the order of retained points are unchanged.
+Supported handlers: Livox CustomMsg, Ouster, Velodyne and MARSIM.
+
+Defaults (also shown in `config/mid360.yaml`):
+
+```yaml
+self_filter:
+  enabled: true
+  min_x: -1.0
+  max_x: 0.1
+  min_y: -0.5
+  max_y: 0.5
+  min_z: -0.5
+  max_z: 2.0
+```
+
+The same defaults apply when an integration launch supplies a different YAML.
+Set `self_filter/enabled` to false to disable exclusion. These dimensions come
+from the reference robot; calibrate them for your LiDAR installation.
+Invalid/non-finite or reversed bounds stop startup with an error.
