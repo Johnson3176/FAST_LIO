@@ -546,26 +546,28 @@ void publish_frame_world(const ros::Publisher & pubLaserCloudFull)
 void publish_frame_world_localframes(const ros::Publisher& publisher)
 {
     PointCloudXYZI::ConstPtr source = dense_pub_en ? feats_undistort : feats_down_body;
-    if (source->empty()) return;
+    if (!source->empty())
+    {
+        // Selection controls the queue only; cached clouds are already in odom.
+        PointCloudXYZI::Ptr world(new PointCloudXYZI(*source));
+        for (size_t i = 0; i < source->size(); ++i)
+            RGBpointBodyToWorld(&source->points[i], &world->points[i]);
 
-    // Each frame is transformed exactly once, using its own final estimated pose.
-    PointCloudXYZI::Ptr world(new PointCloudXYZI(*source));
-    for (size_t i = 0; i < source->size(); ++i)
-        RGBpointBodyToWorld(&source->points[i], &world->points[i]);
-
-    const std::array<double, 3> position{{state_point.pos.x(), state_point.pos.y(), state_point.pos.z()}};
-    if (!local_frame_buffer.add(world, position, lidar_end_time)) return;
+        const std::array<double, 3> position{{state_point.pos.x(), state_point.pos.y(), state_point.pos.z()}};
+        local_frame_buffer.add(world, position, lidar_end_time);
+    }
 
     PointCloudXYZI accumulated;
     size_t point_count = 0;
     for (const auto& frame : local_frame_buffer.frames()) point_count += frame.cloud->size();
     accumulated.reserve(point_count);
     for (const auto& frame : local_frame_buffer.frames()) accumulated += *frame.cloud;
+    if (accumulated.empty()) return;
 
     sensor_msgs::PointCloud2 message;
     pcl::toROSMsg(accumulated, message);
     message.header.frame_id = "odom";
-    message.header.stamp = ros::Time().fromSec(local_frame_buffer.frames().back().stamp);
+    message.header.stamp = ros::Time().fromSec(lidar_end_time);
     publisher.publish(message);
 }
 

@@ -323,9 +323,10 @@ The oldest selected scan is removed when the frame limit is exceeded.
 
 `publish/dense_publish_en` selects undistorted full scans (true) or downsampled
 scans (false). Memory scales with the number of cached points; reduce the frame
-limit or disable dense output for large scans. A latched queue of one publishes
-only when the cache changes. Its timestamp is that of the newest selected scan,
-not wall time. Point fields are preserved, but per-point relative times span
+limit or disable dense output for large scans. A latched queue of one publishes the nonempty accumulated cloud on every
+processed scan, even when no new frame is admitted. An empty current scan does
+not suppress a nonempty cache. The message timestamp is the current scan end
+time, not wall time; retained points may come from earlier selected scans. Point fields are preserved, but per-point relative times span
 multiple scans and must not be treated as a new raw LiDAR scan.
 
 The cache is cleared on LiDAR/IMU timestamp rewind. All cache access stays in the
